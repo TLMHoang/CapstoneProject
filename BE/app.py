@@ -47,7 +47,7 @@ def get_products():
 
 
 @app.route('/products/<int:id>', methods=['GET'])
-# @requires_auth('get:products-detail')
+@requires_auth('get:products-detail')
 def get_product_detail(id):
     product = Product.query.get(id)
     if not product:
