@@ -112,44 +112,44 @@ def delete_product(payload, id):
         logging.error(f"Error deleting product: {e}")
         abort(422)
 
-@app.route('/CreateProducts', methods=['POST'])
-@requires_auth('post:products')
-def create_product_and_serial(payload):
-    try:
-        data = request.get_json()
-        logging.error(data)
-        product_name = data.get('name')
-        imeis = data.get('imeis')
-        if not product_name:
-            abort(
-                400, description="Data invalid.Should have productname")
+# @app.route('/CreateProducts', methods=['POST'])
+# @requires_auth('post:products')
+# def create_product_and_serial(payload):
+#     try:
+#         data = request.get_json()
+#         logging.error(data)
+#         product_name = data.get('name')
+#         imeis = data.get('imeis')
+#         if not product_name:
+#             abort(
+#                 400, description="Data invalid.Should have productname")
         
         
 
-        product = Product.query.filter_by(name=product_name).first()
-        if not product:
-            product = Product(name=product_name)
-            product.insert()
+#         product = Product.query.filter_by(name=product_name).first()
+#         if not product:
+#             product = Product(name=product_name)
+#             product.insert()
 
-        created_serials = []
-        if imeis or isinstance(imeis, list):
-            for imei in imeis:
-                if Serial.query.filter_by(imei=imei).first():
-                    continue
-                new_serial = Serial(imei=imei, product_id=product.id)
-                new_serial.insert()
-                created_serials.append(new_serial.format())
+#         created_serials = []
+#         if imeis or isinstance(imeis, list):
+#             for imei in imeis:
+#                 if Serial.query.filter_by(imei=imei).first():
+#                     continue
+#                 new_serial = Serial(imei=imei, product_id=product.id)
+#                 new_serial.insert()
+#                 created_serials.append(new_serial.format())
 
-        return jsonify({
-            'success': True,
-            'product': product.format(),
-            'created_serials': created_serials
-        }), 201
+#         return jsonify({
+#             'success': True,
+#             'product': product.format(),
+#             'created_serials': created_serials
+#         }), 201
 
-    except Exception as e:
-        db.session.rollback()
-        logging.error(f"Lỗi khi tạo serial: {e}")
-        abort(500)
+#     except Exception as e:
+#         db.session.rollback()
+#         logging.error(f"Lỗi khi tạo serial: {e}")
+#         abort(500)
 
 
 @app.errorhandler(422)
