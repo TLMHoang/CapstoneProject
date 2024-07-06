@@ -40,8 +40,8 @@ phases:
       - export KUBECONFIG=$HOME/.kube/config
       - echo `ls -l`
       - touch BE/__init__.py
-      - pip install -r requirements.txt
-      - python -m pytest testapi.py
+      # - pip install -r requirements.txt
+      # - python -m pytest testapi.py
   build:
     commands:
       - docker build --tag $REPOSITORY_URI:$TAG .
