@@ -67,3 +67,25 @@ class Serial(db.Model):
 
     # Foreign key to User
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+
+    def __init__(self, imei, product_id):
+        self.imei = imei
+        self.product_id = product_id
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            'id': self.id,
+            'imei': self.imei,
+            'product_id': self.product_id
+        }

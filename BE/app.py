@@ -22,22 +22,27 @@ DATABASE_URI = os.environ.get('DATABASE_URI', 'postgresql://postgres:123qwe@loca
 URL_CLIENT = os.environ.get('URL_CLIENT', 'http://localhost:4200')
 
 app = Flask(__name__)
-setup_db(app, DATABASE_URI) 
+setup_db(app, DATABASE_URI)
 migrate = Migrate(app, db)
 cors = CORS(app, resources={r"/*": {"origins": URL_CLIENT}})
-
-@app.route('/', methods=['POST', 'GET'])
-def health():
-    return jsonify("Hello world!!!!!")
 
 @app.route('/products', methods=['GET'])
 @cross_origin()
 def get_products():
     products = Product.query.all()
 
+    product_list = []
+    for product in products:
+        num_serials = Serial.query.filter_by(product_id=product.id).count()
+        product_list.append({
+            'id': product.id,
+            'name': product.name,
+            'countSerial': num_serials
+        })
+
     return jsonify({
         'success': True,
-        'products': [drink.format() for drink in products]
+        'products': product_list
     }), 200
 
 
@@ -54,8 +59,9 @@ def get_product_detail(id):
         'serials': [s.imei for s in serials]
     }), 200
 
+
 @app.route('/products', methods=['POST'])
-@requires_auth('post:products') 
+@requires_auth('post:products')
 def create_product(payload):
     req = request.get_json()
     try:
@@ -89,6 +95,7 @@ def update_product(payload, id):
         logging.error(f"Error updating product: {e}")
         abort(422)
 
+
 @app.route('/products/<int:id>', methods=['DELETE'])
 @requires_auth('delete:products')
 def delete_product(payload, id):
@@ -104,6 +111,45 @@ def delete_product(payload, id):
     except Exception as e:
         logging.error(f"Error deleting product: {e}")
         abort(422)
+
+@app.route('/CreateProducts', methods=['POST'])
+@requires_auth('post:products')
+def create_product_and_serial(payload):
+    try:
+        data = request.get_json()
+        logging.error(data)
+        product_name = data.get('name')
+        imeis = data.get('imeis')
+        if not product_name:
+            abort(
+                400, description="Data invalid.Should have productname")
+        
+        
+
+        product = Product.query.filter_by(name=product_name).first()
+        if not product:
+            product = Product(name=product_name)
+            product.insert()
+
+        created_serials = []
+        if imeis or isinstance(imeis, list):
+            for imei in imeis:
+                if Serial.query.filter_by(imei=imei).first():
+                    continue
+                new_serial = Serial(imei=imei, product_id=product.id)
+                new_serial.insert()
+                created_serials.append(new_serial.format())
+
+        return jsonify({
+            'success': True,
+            'product': product.format(),
+            'created_serials': created_serials
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Lỗi khi tạo serial: {e}")
+        abort(500)
 
 
 @app.errorhandler(422)
@@ -158,6 +204,7 @@ def method_not_allowed(error):
         "error": 405,
         "message": 'Method Not Allowed'
     }), 405
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
