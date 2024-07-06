@@ -12,7 +12,7 @@ from auth import AuthError, requires_auth
 # pylint: disable=import-error
 from flask import Flask, jsonify, request, abort
 
-from model import setup_db, db
+from model import setup_db, db, Product, Serial
 from flask_cors import CORS, cross_origin
 
 load_dotenv()
@@ -30,7 +30,80 @@ cors = CORS(app, resources={r"/*": {"origins": URL_CLIENT}})
 def health():
     return jsonify("Hello world!!!!!")
 
+@app.route('/products', methods=['GET'])
+@cross_origin()
+def get_products():
+    products = Product.query.all()
 
+    return jsonify({
+        'success': True,
+        'products': [drink.format() for drink in products]
+    }), 200
+
+
+@app.route('/products/<int:id>', methods=['GET'])
+# @requires_auth('get:products-detail')
+def get_product_detail(id):
+    product = Product.query.get(id)
+    if not product:
+        abort(404)
+    serials = Serial.query.filter(Serial.product_id == id).all()
+    return jsonify({
+        'success': True,
+        'product': product.format(),
+        'serials': [s.imei for s in serials]
+    }), 200
+
+@app.route('/products', methods=['POST'])
+@requires_auth('post:products') 
+def create_product(payload):
+    req = request.get_json()
+    try:
+        new_product = Product(name=req.get('name'))
+        new_product.insert()
+        return jsonify({
+            'success': True,
+            'product': new_product.format()
+        }), 201
+    except Exception as e:
+        logging.error(f"Error creating product: {e}")
+        abort(422)
+
+
+@app.route('/products/<int:id>', methods=['PATCH'])
+@requires_auth('patch:products')
+def update_product(payload, id):
+    req = request.get_json()
+    product = Product.query.get(id)
+    if not product:
+        abort(404)
+    try:
+        if 'name' in req:
+            product.name = req.get('name')
+        product.update()
+        return jsonify({
+            'success': True,
+            'product': product.format()
+        }), 200
+    except Exception as e:
+        logging.error(f"Error updating product: {e}")
+        abort(422)
+
+@app.route('/products/<int:id>', methods=['DELETE'])
+@requires_auth('delete:products')
+def delete_product(payload, id):
+    product = Product.query.get(id)
+    if not product:
+        abort(404)
+    try:
+        product.delete()
+        return jsonify({
+            'success': True,
+            'delete': id
+        }), 200
+    except Exception as e:
+        logging.error(f"Error deleting product: {e}")
+        abort(422)
 
 
 @app.errorhandler(422)
@@ -87,4 +160,4 @@ def method_not_allowed(error):
     }), 405
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

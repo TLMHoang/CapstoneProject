@@ -13,23 +13,19 @@ ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
 
-AUTH0_DOMAIN = ''
-ALGORITHMS = []
-API_AUDIENCE = ''
+
 
 load_dotenv()
+
+AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
+ALGORITHMS = os.environ.get('ALGORITHMS')
+API_AUDIENCE = os.environ.get('API_AUDIENCE')
 
 
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
-        global AUTH0_DOMAIN
-        AUTH0_DOMAIN = os.getenv('AUTH0_DOMAIN')
-        global ALGORITHMS
-        ALGORITHMS = os.getenv('ALGORITHMS')
-        global API_AUDIENCE
-        API_AUDIENCE = os.getenv('API_AUDIENCE')
         
 ## Auth Header
 

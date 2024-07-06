@@ -29,28 +29,41 @@ def setup_db(app, database_path):
 #----------------------------------------------------------------------------#
 
 # User model
-class User(db.Model): 
-    __tablename__ = 'users'
+class Product(db.Model): 
+    __tablename__ = 'products'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    token = db.Column(db.String(1024), nullable=False) 
-    registration_date = db.Column(db.DateTime)
-    role = db.Column(db.String(20), default='reader')
+    name = db.Column(db.String(50), unique=True, nullable=False)
 
     # Relationship with Posts
-    posts = db.relationship("Post", backref="author", uselist=False, lazy=True)
+    posts = db.relationship("Serial", backref="author", uselist=False, lazy=True)
+
+    def __init__(self, name):
+        self.name = name
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def update(self):
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    def format(self):
+        return {
+            'id': self.id,
+            'name': self.name
+            }
 
 # Post model
-class Post(db.Model):
-    __tablename__ = 'posts'
+class Serial(db.Model):
+    __tablename__ = 'serials'
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    publication_date = db.Column(db.DateTime)
-    slug = db.Column(db.String(200), unique=True, nullable=False)
+    imei = db.Column(db.String(200), nullable=False)
 
     # Foreign key to User
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
