@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title *ngIf="isNew">New Produck Creator</ion-title>
+    <ion-title *ngIf="!isNew">Produck Editor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="product">
+    <form (ngSubmit)="logForm()">
+      <ion-item>
+        <ion-label>Produck Title</ion-label>
+        <ion-input type="text" [(ngModel)]="product.name" name="title"></ion-input>
+      </ion-item>
+      <ion-item *ngFor="let item of product.imeis">
+        <span>{{item}}</span>
+      </ion-item>
+      <ion-button 
+        [disabled]="!auth.can('delete:products')"
+        (click)="deleteClicked()">Delete</ion-button><br />
+      <ion-button (click)="closeModal()">Cancel</ion-button>
+      <ion-button 
+        [disabled]="!auth.can('patch:products') || !auth.can('post:products')"
+        (click)="saveClicked()">Save</ion-button>
+
+    </form>
+</ion-content>

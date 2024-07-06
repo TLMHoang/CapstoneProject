@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar style="text-align: center">
+    <ion-title><b>Uda-Spice Latte</b> Cafe</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="products && products.items">
+<div style="display: flex; justify-content: center; padding-top: 20px;">
+    <ion-card
+     style="align-items: center; display: flex; flex-direction: column; cursor: pointer; max-width: 150px; max-height: 120px;" 
+     *ngFor="let product of Object.keys(products.items)"
+     (click)="openForm(products.items[product])">
+        <ion-card-header style="text-align: center; color: black;">
+            <span>{{products.items[product].name}}</span>
+        </ion-card-header>
+      
+        <ion-card-content>
+            <span>Have {{products.items[product].countSerial}} in stock</span>
+        </ion-card-content>
+      </ion-card>
+    <ion-card
+     style="opacity: .7; align-items: center; display: flex; flex-direction: column; cursor: pointer; height: 120px;" 
+     *ngIf="auth.can('post:products')"
+     (click)="openForm()">
+        <ion-card-header>
+          <ion-card-title>Create Product</ion-card-title>
+        </ion-card-header>
+      
+        <ion-card-content style="color:grey; font-size: 256%;">
+            <ion-icon name="add-circle"></ion-icon>
+        </ion-card-content>
+      </ion-card>
+</div>
+</ion-content>
