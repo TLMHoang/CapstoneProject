@@ -1,0 +1,16 @@
+aws ssm put-parameter --name JWT_SECRET --overwrite --value "myjwtsecret" --type SecureString
+
+# DATABASE_URI (SecureString)
+aws ssm put-parameter --name DATABASE_URI --overwrite --value 'postgresql://hoangtlm:fcer4kDFWvsjHtHEI0EeLpb4npllfQ6X@dpg-cq4jng5ds78s73clcm50-a.oregon-postgres.render.com/storephone' --type SecureString
+
+# AUTH0_DOMAIN (String)
+aws ssm put-parameter --name AUTH0_DOMAIN --overwrite --value 'dev-i1gjgh5lkb4vhmma.us.auth0.com' --type String
+
+# ALGORITHMS (StringList)
+aws ssm put-parameter --name ALGORITHMS --overwrite --value '["RS256"]' --type StringList
+
+# API_AUDIENCE (String)
+aws ssm put-parameter --name API_AUDIENCE --overwrite --value 'Image' --type String
+
+# URL_CLIENT (String)
+aws ssm put-parameter --name URL_CLIENT --overwrite --value 'http://localhost:4200' --type String
