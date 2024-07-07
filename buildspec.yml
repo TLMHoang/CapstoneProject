@@ -40,8 +40,8 @@ phases:
       - export KUBECONFIG=$HOME/.kube/config
       - echo `ls -l`
       - pip install -r requirements.txt
-      # - cd ./BE
-      # - python -m pytest testapi.py
+      - cd ./BE
+      - python -m pytest testapi.py
   build:
     commands:
       - echo `ls`
@@ -52,7 +52,7 @@ phases:
       - docker push $REPOSITORY_URI:$TAG
       - echo $EKS_CLUSTER_NAME
       - echo $EKS_KUBECTL_ROLE_ARN
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --role-arn $EKS_KUBECTL_ROLE_ARN
+      # - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME -- -arn $EKS_KUBECTL_ROLE_ARN
       - kubectl apply -f phone-store.yml 
       - printf '[{"name":"phone-store","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
 artifacts:
