@@ -7,7 +7,6 @@ phases:
     runtime-versions:
       python: 3.9
     commands:
-      - pip install --upgrade pyOpenSSL urllib3 requests
       - echo 'about to call dockerd'
       - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2&
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
@@ -56,7 +55,7 @@ phases:
       - docker push $REPOSITORY_URI:$TAG
       - echo $EKS_CLUSTER_NAME
       - echo $EKS_KUBECTL_ROLE_ARN
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME -- -arn $EKS_KUBECTL_ROLE_ARN
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --role-arn $EKS_KUBECTL_ROLE_ARN
       - kubectl apply -f phone-store.yml 
       - printf '[{"name":"phone-store","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
 artifacts:
