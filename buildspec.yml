@@ -45,9 +45,10 @@ phases:
       - cd ./BE
       - python -m pytest testapi.py
       - cd ..
+      - echo `ls`
   build:
     commands:
-      - echo ls
+      - echo `ls`
       - docker build --tag $REPOSITORY_URI:$TAG .
 
   post_build:
