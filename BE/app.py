@@ -48,8 +48,8 @@ def get_products():
 
 @app.route('/products/<int:id>', methods=['GET'])
 @requires_auth('get:products-detail')
-def get_product_detail(id):
-    product = Product.query.get(id)
+def get_product_detail(payload, id):
+    product = db.session.get(Product, id)  #Product.query.get(id)
     if not product:
         abort(404)
     serials = Serial.query.filter(Serial.product_id == id).all()
@@ -80,7 +80,7 @@ def create_product(payload):
 @requires_auth('patch:products')
 def update_product(payload, id):
     req = request.get_json()
-    product = Product.query.get(id)
+    product = db.session.get(Product, id) #Product.query.get(id)
     if not product:
         abort(404)
     try:
@@ -99,7 +99,7 @@ def update_product(payload, id):
 @app.route('/products/<int:id>', methods=['DELETE'])
 @requires_auth('delete:products')
 def delete_product(payload, id):
-    product = Product.query.get(id)
+    product = db.session.get(Product, id) #Product.query.get(id)
     if not product:
         abort(404)
     try:
@@ -112,44 +112,44 @@ def delete_product(payload, id):
         logging.error(f"Error deleting product: {e}")
         abort(422)
 
-# @app.route('/CreateProducts', methods=['POST'])
-# @requires_auth('post:products')
-# def create_product_and_serial(payload):
-#     try:
-#         data = request.get_json()
-#         logging.error(data)
-#         product_name = data.get('name')
-#         imeis = data.get('imeis')
-#         if not product_name:
-#             abort(
-#                 400, description="Data invalid.Should have productname")
+@app.route('/CreateProducts', methods=['POST'])
+@requires_auth('post:products')
+def create_product_and_serial(payload):
+    try:
+        data = request.get_json()
+        logging.error(data)
+        product_name = data.get('name')
+        imeis = data.get('imeis')
+        if not product_name:
+            abort(
+                400, description="Data invalid.Should have productname")
         
         
 
-#         product = Product.query.filter_by(name=product_name).first()
-#         if not product:
-#             product = Product(name=product_name)
-#             product.insert()
+        product = Product.query.filter_by(name=product_name).first()
+        if not product:
+            product = Product(name=product_name)
+            product.insert()
 
-#         created_serials = []
-#         if imeis or isinstance(imeis, list):
-#             for imei in imeis:
-#                 if Serial.query.filter_by(imei=imei).first():
-#                     continue
-#                 new_serial = Serial(imei=imei, product_id=product.id)
-#                 new_serial.insert()
-#                 created_serials.append(new_serial.format())
+        created_serials = []
+        if imeis or isinstance(imeis, list):
+            for imei in imeis:
+                if Serial.query.filter_by(imei=imei).first():
+                    continue
+                new_serial = Serial(imei=imei, product_id=product.id)
+                new_serial.insert()
+                created_serials.append(new_serial.format())
 
-#         return jsonify({
-#             'success': True,
-#             'product': product.format(),
-#             'created_serials': created_serials
-#         }), 201
+        return jsonify({
+            'success': True,
+            'product': product.format(),
+            'created_serials': created_serials
+        }), 201
 
-#     except Exception as e:
-#         db.session.rollback()
-#         logging.error(f"Lỗi khi tạo serial: {e}")
-#         abort(500)
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Create serial failed with exception: {e}")
+        abort(500)
 
 
 @app.errorhandler(422)
@@ -205,6 +205,13 @@ def method_not_allowed(error):
         "message": 'Method Not Allowed'
     }), 405
 
+@app.errorhandler(404)
+def recource_not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": 'Resource not found'
+    }), 404
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)

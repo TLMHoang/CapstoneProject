@@ -23,15 +23,18 @@ class ProductTestCase(unittest.TestCase):
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:123qwe@localhost:5432/storePhone' 
         app.config['JWT_SECRET'] = 'TestSecret'
         self.app = app.test_client()
-        # db.init_app(app)
-        # db.create_all()
         self.test_product = {"name": "Sản phẩm kiểm thử " + str(datetime.now())}
         self.test_serial = {"name": "Sản phẩm kiểm thử", "imeis": ["123456789012345", "098765432109876"]}
 
+        self.ctx = app.app_context()
+        self.ctx.push()
+        db.create_all()
+
     def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
         pass
-        # db.session.remove()
-        # db.drop_all()
 
     # GET /products
     def test_get_products_success(self):
@@ -52,27 +55,6 @@ class ProductTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(isinstance(data['products'], list))
 
-    # POST /products
-    def test_create_product_success(self):
-        token = generate_token('Admin')
-        headers = {'Authorization': f'Bearer {token}'}
-        response = self.app.post('/products', json=self.test_product, headers=headers)
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(data['success'], True)
-        self.assertEqual(data['product']['name'], self.test_product['name'])
-
-    def test_create_product_unauthorized(self):
-        token = generate_token('User')  # User không có quyền tạo sản phẩm
-        headers = {'Authorization': f'Bearer {token}'}
-        response = self.app.post('/products', json=self.test_product, headers=headers)
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'Permission Not found')
-
     # # RBAC for GET /products
     def test_get_products_rbac_admin(self):
         token = generate_token('Admin')
@@ -86,84 +68,140 @@ class ProductTestCase(unittest.TestCase):
         response = self.app.get('/products', headers=headers)
         self.assertEqual(response.status_code, 200)
 
-    # # GET /products/<int:id>
-    # def test_get_product_detail_success(self):
-    #     token = generate_token('Admin')  
-    #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.get(f'/products/1', headers=headers)
-    #     data = json.loads(response.data)
+    # POST /products
+    def test_create_product_success(self):
+        token = generate_token('Admin')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.post('/products', json=self.test_product, headers=headers)
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #     self.assertEqual(data['product']['id'], 1)
-    #     # self.assertEqual(data['product']['name'], product.name)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['product']['name'], self.test_product['name'])
 
-    # def test_get_product_detail_not_found(self):
-    #     token = generate_token('Admin') 
-    #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.get('/products/9999', headers=headers)
-    #     data = json.loads(response.data)
+    def test_create_product_unauthorized(self):
+        token = generate_token('User')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.post('/products', json=self.test_product, headers=headers)
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 404)
-    #     self.assertEqual(data['success'], False)
-    #     self.assertEqual(data['message'], 'Resource not found')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Permission Not found')
 
-    # # PATCH /products/<int:id>
-    # def test_update_product_success(self):
-    #     product = Product(name="Sản phẩm cũ")
-    #     db.session.add(product)
-    #     db.session.commit()
+    # GET /products/<int:id>
+    def test_get_product_detail_success(self):
+        product = Product(name="Sản phẩm chi tiết")
+        db.session.add(product)
+        db.session.commit()
+        
+        token = generate_token('Admin')  
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.get(f'/products/1', headers=headers)
+        data = json.loads(response.data)
 
-    #     new_product_data = {"name": "Sản phẩm mới" + + str(datetime.now())}
-    #     token = generate_token('Admin')
-    #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.patch(f'/products/{product.id}', json=new_product_data, headers=headers)
-    #     data = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['product']['id'], 1)
 
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #     self.assertEqual(data['product']['name'], new_product_data['name'])
+    def test_get_product_detail_not_found(self):
+        token = generate_token('Admin') 
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.get('/products/9999', headers=headers)
+        data = json.loads(response.data)
 
-    # def test_update_product_unauthorized(self):
-    #     product = Product(name="Sản phẩm cũ")
-    #     db.session.add(product)
-    #     db.session.commit()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Resource not found')
 
-    #     new_product_data = {"name": "Sản phẩm mới"}
-    #     token = generate_token('User')  # User không có quyền sửa
-    #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.patch(f'/products/{product.id}', json=new_product_data, headers=headers)
-    #     data = json.loads(response.data)
+    def test_get_product_detail_unauthorized(self):
+        token = generate_token('User')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.get('/products/1', json=self.test_product, headers=headers)
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 403)
-    #     self.assertEqual(data['success'], False)
-    #     self.assertEqual(data['message'], 'Permission not found.')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Permission Not found')
+
+    # PATCH /products/<int:id>
+    def test_update_product_success(self):
+        product = Product(name="Sản phẩm cũ")
+        db.session.add(product)
+        db.session.commit()
+
+        new_product_data = {"name": "Sản phẩm mới" + str(datetime.now())}
+        token = generate_token('Admin')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.patch(f'/products/{product.id}', json=new_product_data, headers=headers)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['product']['name'], new_product_data['name'])
+
+    def test_update_product_unauthorized(self):
+        product = Product(name="Sản phẩm cũ")
+        db.session.add(product)
+        db.session.commit()
+
+        new_product_data = {"name": "Sản phẩm mới"}
+        token = generate_token('User')  # User không có quyền sửa
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.patch(f'/products/{product.id}', json=new_product_data, headers=headers)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Permission Not found')
     
-    # # DELETE /products/<int:id>
-    # def test_delete_product_success(self):
-    #     product = Product(name="Sản phẩm cần xóa")
-    #     db.session.add(product)
-    #     db.session.commit()
+    # DELETE /products/<int:id>
+    def test_delete_product_success(self):
+        product = Product(name="Sản phẩm cần xóa")
+        db.session.add(product)
+        db.session.commit()
 
-    #     token = generate_token('Admin')
-    #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.delete(f'/products/{product.id}', headers=headers)
-    #     data = json.loads(response.data)
+        token = generate_token('Admin')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.delete(f'/products/{product.id}', headers=headers)
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertEqual(data['success'], True)
-    #     self.assertEqual(data['deleted'], product.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['delete'], product.id)
 
-    # def test_delete_product_unauthorized(self):
-    #     product = Product(name="Sản phẩm cần xóa")
-    #     db.session.add(product)
-    #     db.session.commit()
+    def test_delete_product_unauthorized(self):
+        product = Product(name="Sản phẩm cần xóa")
+        db.session.add(product)
+        db.session.commit()
 
-    #     token = generate_token('User')  # User không có quyền xóa
-    #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.delete(f'/products/{product.id}', headers=headers)
-    #     data = json.loads(response.data)
+        token = generate_token('User')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.delete(f'/products/{product.id}', headers=headers)
+        data = json.loads(response.data)
 
-    #     self.assertEqual(response.status_code, 403)
-    #     self.assertEqual(data['success'], False)
-    #     self.assertEqual(data['message'], 'Permission not found.')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Permission Not found')
+
+    # POST /CreateProducts
+    def test_create_product_and_serial_success(self):
+        token = generate_token('Admin')
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.post('/CreateProducts', json=self.test_serial, headers=headers)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['product']['name'], self.test_serial['name'])
+        self.assertEqual(len(data['created_serials']), len(self.test_serial['imeis']))
+
+    def test_create_product_and_serial_unauthorized(self):
+        token = generate_token('User') 
+        headers = {'Authorization': f'Bearer {token}'}
+        response = self.app.post('/CreateProducts', json=self.test_serial, headers=headers)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Permission Not found')
