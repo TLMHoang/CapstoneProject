@@ -10,6 +10,8 @@ The primary goal of this project is to provide a robust and scalable solution fo
 
 This API is not currently hosted on a public URL. However, it can be easily deployed to various cloud platforms or run locally for development and testing purposes.
 
+<a href="cc090525ffc94e209d93439794de053-962124918.us-east-1.elb.amazonaws.com" target="_blank">Final URL</a>: cc090525ffc94e209d93439794de053-962124918.us-east-1.elb.amazonaws.com
+
 ## Prerequisites
 
 - `Docker Desktop` - Installation instructions for all OSes can be found <a href="https://docs.docker.com/install/" target="_blank">here</a>.
