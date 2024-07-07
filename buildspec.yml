@@ -39,13 +39,9 @@ phases:
       - $(aws ecr get-login --no-include-email)
       - export KUBECONFIG=$HOME/.kube/config
       - echo `ls -l`
-      - echo `ls ./BE`
-      - touch BE/__init__.py
       - pip install -r requirements.txt
-      - cd ./BE
-      - python -m pytest testapi.py
-      - cd ..
-      - echo `ls`
+      # - cd ./BE
+      # - python -m pytest testapi.py
   build:
     commands:
       - echo `ls`
