@@ -42,7 +42,8 @@ phases:
       - echo `ls ./BE`
       - touch BE/__init__.py
       - pip install -r requirements.txt
-      - python -m pytest ./BE/testapi.py
+      - cd ./BE
+      - python -m pytest testapi.py
   build:
     commands:
       - docker build --tag $REPOSITORY_URI:$TAG .
