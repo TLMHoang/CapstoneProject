@@ -52,7 +52,7 @@ class ProductTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(isinstance(data['products'], list))
 
-    # # POST /products
+    # POST /products
     def test_create_product_success(self):
         token = generate_token('Admin')
         headers = {'Authorization': f'Bearer {token}'}
@@ -88,24 +88,20 @@ class ProductTestCase(unittest.TestCase):
 
     # # GET /products/<int:id>
     # def test_get_product_detail_success(self):
-    #     product = Product(name="Sản phẩm chi tiết")
-    #     db.session.add(product)
-    #     db.session.commit()
-
-    #     token = generate_token('Admin')  # Hoặc 'User', cả hai đều có quyền
+    #     token = generate_token('Admin')  
     #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.get(f'/products/{product.id}', headers=headers)
+    #     response = self.app.get(f'/products/1', headers=headers)
     #     data = json.loads(response.data)
 
     #     self.assertEqual(response.status_code, 200)
     #     self.assertEqual(data['success'], True)
-    #     self.assertEqual(data['product']['id'], product.id)
-    #     self.assertEqual(data['product']['name'], product.name)
+    #     self.assertEqual(data['product']['id'], 1)
+    #     # self.assertEqual(data['product']['name'], product.name)
 
     # def test_get_product_detail_not_found(self):
-    #     token = generate_token('Admin')  # Hoặc 'User', cả hai đều có quyền
+    #     token = generate_token('Admin') 
     #     headers = {'Authorization': f'Bearer {token}'}
-    #     response = self.app.get('/products/9999', headers=headers)  # ID không tồn tại
+    #     response = self.app.get('/products/9999', headers=headers)
     #     data = json.loads(response.data)
 
     #     self.assertEqual(response.status_code, 404)
@@ -118,7 +114,7 @@ class ProductTestCase(unittest.TestCase):
     #     db.session.add(product)
     #     db.session.commit()
 
-    #     new_product_data = {"name": "Sản phẩm mới"}
+    #     new_product_data = {"name": "Sản phẩm mới" + + str(datetime.now())}
     #     token = generate_token('Admin')
     #     headers = {'Authorization': f'Bearer {token}'}
     #     response = self.app.patch(f'/products/{product.id}', json=new_product_data, headers=headers)
