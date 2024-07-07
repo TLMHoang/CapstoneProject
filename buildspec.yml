@@ -50,8 +50,6 @@ phases:
 
   post_build:
     commands:
-      - aws eks list-cluters
-      - aws sts get-caller-identity --query Account --output text
       - docker push $REPOSITORY_URI:$TAG
       - echo $EKS_CLUSTER_NAME
       - echo $EKS_KUBECTL_ROLE_ARN
