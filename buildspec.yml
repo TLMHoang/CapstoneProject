@@ -43,6 +43,7 @@ phases:
       - pip install -r requirements.txt
       - cd ./BE
       - python -m pytest testapi.py
+      - cd ..
   build:
     commands:
       - echo `ls`
